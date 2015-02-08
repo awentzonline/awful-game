@@ -277,10 +277,10 @@ Preload.prototype = {
 
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
     this.load.setPreloadSprite(this.asset);
-    this.load.image('barrel0', '/assets/barrel0.png');
-    this.load.image('terrainTiles', '/assets/tiled/terrain.png');
-    this.load.tilemap('level0', '/assets/tiled/level0.json', null, Phaser.Tilemap.TILED_JSON);
-    this.load.spritesheet('guy_walk', '/assets/guy_walk.png', 79, 150, 7);
+    this.load.image('barrel0', 'assets/barrel0.png');
+    this.load.image('terrainTiles', 'assets/tiled/terrain.png');
+    this.load.tilemap('level0', 'assets/tiled/level0.json', null, Phaser.Tilemap.TILED_JSON);
+    this.load.spritesheet('guy_walk', 'assets/guy_walk.png', 79, 150, 7);
   },
   create: function() {
     this.asset.cropEnabled = false;
