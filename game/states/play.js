@@ -10,6 +10,7 @@ Play.prototype = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
     this.game.physics.arcade.gravity.y = 400;
     this.props = this.game.add.group();
+    this.minions = this.game.add.group();
     this.setupMap();
   },
   setupMap: function () {
@@ -32,7 +33,8 @@ Play.prototype = {
               this.game,
               object.x + object.width * 0.5,
               object.y + object.height,
-              "guy_walk"
+              this.minions,
+              'guy_walk'
             );
             //var p = this.player = this.game.add(object.x, object.y, "guy_walk");
             p.animations.add('walk', [0,1,2,3,4,5,6]);
@@ -57,9 +59,9 @@ Play.prototype = {
     };
   },
   update: function() {
-    this.game.physics.arcade.collide(
-      this.player, this.collisionLayer);
-
+    this.game.physics.arcade.collide(this.player, this.collisionLayer);
+    this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
+    // player input
     var pointer = this.input.activePointer;
     if (pointer) {
       var epsilon = this.player.width * 0.25;

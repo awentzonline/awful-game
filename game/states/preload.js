@@ -16,6 +16,7 @@ Preload.prototype = {
     this.load.image('terrainTiles', 'assets/tiled/terrain.png');
     this.load.tilemap('level0', 'assets/tiled/level0.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.spritesheet('guy_walk', 'assets/guy_walk.png', 79, 150, 7);
+    this.load.spritesheet('baby_run', 'assets/baby_run.png', 58, 96, 6);
   },
   create: function() {
     this.asset.cropEnabled = false;

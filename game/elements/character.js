@@ -26,8 +26,7 @@ Character.prototype.update = function () {
   if (this.moveJump && this.body.blocked.down) {
     this.body.velocity.y = this.jumpVelocity;
   }
-  this.jumpCountdown -= this.game.time.elapsed;
-  
+
   Phaser.Sprite.prototype.update.call(this);
   
   // animation and direction
