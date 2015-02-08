@@ -27,8 +27,7 @@ Character.prototype.update = function () {
   if (this.moveJump && this.body.blocked.down) {
     this.body.velocity.y = this.jumpVelocity;
   }
-  this.jumpCountdown -= this.game.time.elapsed;
-  
+
   Phaser.Sprite.prototype.update.call(this);
   
   // animation and direction
@@ -51,13 +50,65 @@ module.exports = Character;
 
 var Character = require('./character');
 
-function Player(game, x, y, key, frame) {
+function Minion(game, x, y, key, frame) {
   Character.call(this, game, x, y, key, frame);
+  game.physics.arcade.enable(this);
+  this.moveVelocity = 300;
+  // trim down the hitbox
+  this.body.setSize(
+    this.width * 0.5, this.height * 0.9,
+    this.width * 0.5 * 0.5, -this.height * 0.1 * 0.5);
+}
+
+Minion.prototype = Object.create(Character.prototype);
+Minion.prototype.constructor = Minion;
+
+Minion.prototype.update = function () {
+  this.think();
+  Character.prototype.update.call(this);
+  if (this.moveLeft && this.body.blocked.left) {
+    this.moveJump = true;
+  } else if (this.moveRight && this.body.blocked.right) {
+    this.moveJump = true;
+  } else {
+    this.moveJump = false;
+  }
+};
+
+Minion.prototype.think = function () {
+  if (this.targetObject) {
+    var targetPos = this.targetObject.position;
+    this.moveLeft = false;
+    this.moveRight = false;
+    if (targetPos.x > this.x) {
+      this.moveRight = true;
+    } else if (targetPos.x < this.x) {
+      this.moveLeft = true;
+    }
+  }
+};
+
+module.exports = Minion;
+
+},{"./character":1}],3:[function(require,module,exports){
+'use strict';
+
+var Character = require('./character');
+var Minion = require('./minion');
+
+
+function Player(game, x, y, minionGroup, key, frame) {
+  Character.call(this, game, x, y, key, frame);
+  this.minionGroup = minionGroup;
   game.physics.arcade.enable(this);
   this.moveVelocity = 400;
   this.body.setSize(
     this.width * 0.5, this.height * 0.9,
     this.width * 0.5 * 0.5, -this.height * 0.1 * 0.5);
+  this.intentGiveBirth = true;
+  this.nextBirthTime = 0;
+  this.birthDelay = 1000; // ms
+  this.minionGroup = game.add.group();
 }
 
 Player.prototype = Object.create(Character.prototype);
@@ -65,12 +116,23 @@ Player.prototype.constructor = Player;
 
 Player.prototype.update = function () {
   Character.prototype.update.call(this);
-  
+  var now = this.game.time.now;
+  if (this.intentGiveBirth && this.nextBirthTime <= now) {
+    this.nextBirthTime = now + this.birthDelay;
+    this.giveBirth();
+  }
+};
+
+Player.prototype.giveBirth = function () {
+  var minion = new Minion(this.game, this.x, this.y, 'baby_run');
+  minion.animations.add('walk');
+  this.minionGroup.add(minion);
+  minion.targetObject = this;
 };
 
 module.exports = Player;
 
-},{"./character":1}],3:[function(require,module,exports){
+},{"./character":1,"./minion":2}],4:[function(require,module,exports){
 'use strict';
 
 function Prop(game, x, y, key, frame) {
@@ -83,7 +145,7 @@ Prop.prototype.constructor = Prop;
 
 module.exports = Prop;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 //global variables
@@ -100,7 +162,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":5,"./states/gameover":6,"./states/menu":7,"./states/play":8,"./states/preload":9}],5:[function(require,module,exports){
+},{"./states/boot":6,"./states/gameover":7,"./states/menu":8,"./states/play":9,"./states/preload":10}],6:[function(require,module,exports){
 
 'use strict';
 
@@ -119,7 +181,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -147,7 +209,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -174,7 +236,7 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 var Player = require('../elements/player');
@@ -187,6 +249,7 @@ Play.prototype = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
     this.game.physics.arcade.gravity.y = 400;
     this.props = this.game.add.group();
+    this.minions = this.game.add.group();
     this.setupMap();
   },
   setupMap: function () {
@@ -209,7 +272,8 @@ Play.prototype = {
               this.game,
               object.x + object.width * 0.5,
               object.y + object.height,
-              "guy_walk"
+              this.minions,
+              'guy_walk'
             );
             //var p = this.player = this.game.add(object.x, object.y, "guy_walk");
             p.animations.add('walk', [0,1,2,3,4,5,6]);
@@ -234,9 +298,9 @@ Play.prototype = {
     };
   },
   update: function() {
-    this.game.physics.arcade.collide(
-      this.player, this.collisionLayer);
-
+    this.game.physics.arcade.collide(this.player, this.collisionLayer);
+    this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
+    // player input
     var pointer = this.input.activePointer;
     if (pointer) {
       var epsilon = this.player.width * 0.25;
@@ -262,7 +326,7 @@ Play.prototype = {
 
 module.exports = Play;
 
-},{"../elements/player":2,"../elements/prop":3}],9:[function(require,module,exports){
+},{"../elements/player":3,"../elements/prop":4}],10:[function(require,module,exports){
 
 'use strict';
 function Preload() {
@@ -281,6 +345,7 @@ Preload.prototype = {
     this.load.image('terrainTiles', 'assets/tiled/terrain.png');
     this.load.tilemap('level0', 'assets/tiled/level0.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.spritesheet('guy_walk', 'assets/guy_walk.png', 79, 150, 7);
+    this.load.spritesheet('baby_run', 'assets/baby_run.png', 58, 96, 6);
   },
   create: function() {
     this.asset.cropEnabled = false;
@@ -297,4 +362,4 @@ Preload.prototype = {
 
 module.exports = Preload;
 
-},{}]},{},[4])
+},{}]},{},[5])
