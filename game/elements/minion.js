@@ -29,12 +29,13 @@ Minion.prototype.update = function () {
 
 Minion.prototype.think = function () {
   if (this.targetObject) {
+    var epsilon = this.width * 0.25;
     var targetPos = this.targetObject.position;
     this.moveLeft = false;
     this.moveRight = false;
-    if (targetPos.x > this.x) {
+    if (targetPos.x - epsilon > this.x) {
       this.moveRight = true;
-    } else if (targetPos.x < this.x) {
+    } else if (targetPos.x  + epsilon < this.x) {
       this.moveLeft = true;
     }
   }

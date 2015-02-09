@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="10" tilewidth="32" tileheight="32" nextobjectid="33">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="10" tilewidth="32" tileheight="32" nextobjectid="37">
  <tileset firstgid="1" name="terrain" tilewidth="32" tileheight="32">
   <image source="terrain.png" width="288" height="608"/>
  </tileset>
@@ -53,6 +53,11 @@
   <object id="32" type="Prop" x="1040" y="185" width="25" height="45">
    <properties>
     <property name="image" value="barrel0"/>
+   </properties>
+  </object>
+  <object id="36" name="warp_x" type="Warp" x="1345" y="141" width="48" height="49">
+   <properties>
+    <property name="toLevel" value="_x"/>
    </properties>
   </object>
  </objectgroup>
