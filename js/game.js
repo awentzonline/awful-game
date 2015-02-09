@@ -77,12 +77,13 @@ Minion.prototype.update = function () {
 
 Minion.prototype.think = function () {
   if (this.targetObject) {
+    var epsilon = this.width * 0.25;
     var targetPos = this.targetObject.position;
     this.moveLeft = false;
     this.moveRight = false;
-    if (targetPos.x > this.x) {
+    if (targetPos.x - epsilon > this.x) {
       this.moveRight = true;
-    } else if (targetPos.x < this.x) {
+    } else if (targetPos.x  + epsilon < this.x) {
       this.moveLeft = true;
     }
   }
@@ -105,7 +106,7 @@ function Player(game, x, y, minionGroup, key, frame) {
   this.body.setSize(
     this.width * 0.5, this.height * 0.9,
     this.width * 0.5 * 0.5, -this.height * 0.1 * 0.5);
-  this.intentGiveBirth = true;
+  this.intentGiveBirth = false;
   this.nextBirthTime = 0;
   this.birthDelay = 1000; // ms
   this.minionGroup = game.add.group();
@@ -220,16 +221,16 @@ Menu.prototype = {
   },
   create: function() {
     var style = { font: '65px Arial', fill: '#ffffff', align: 'center'};
-    this.titleText = this.game.add.text(this.game.world.centerX, 300, 'A Game', style);
+    this.titleText = this.game.add.text(this.game.world.centerX, 300, 'An Awful Game', style);
     this.titleText.anchor.setTo(0.5, 0.5);
 
-    this.instructionsText = this.game.add.text(this.game.world.centerX, 400, 'Click anywhere to play', { font: '16px Arial', fill: '#ffffff', align: 'center'});
+    this.instructionsText = this.game.add.text(this.game.world.centerX, 400, 'Click anywhere to play.', { font: '16px Arial', fill: '#ffffff', align: 'center'});
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {
-      this.game.state.start('play');
+      this.game.state.start('play', true, false, ['0']);
     }
   }
 };
@@ -245,15 +246,27 @@ var Prop = require('../elements/prop');
 function Play() {}
 
 Play.prototype = {
+  init: function (levelName) {
+    this.levelName = 'level_' + (levelName || '0');
+    console.log('level named ' + this.levelName);
+  },
+  preload: function ()  {
+    this.load.tilemap(
+      'level-' + this.levelName,
+      'assets/tiled/' + this.levelName + '.json',
+      null, Phaser.Tilemap.TILED_JSON
+    );
+  },
   create: function() {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
     this.game.physics.arcade.gravity.y = 400;
     this.props = this.game.add.group();
     this.minions = this.game.add.group();
     this.setupMap();
+    this.game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
   },
   setupMap: function () {
-    this.map = this.game.add.tilemap('level0');
+    this.map = this.game.add.tilemap('level-' + this.levelName);
     this.map.addTilesetImage('terrain', 'terrainTiles');
     this.collisionLayer = this.map.createLayer('collision');
     this.map.setCollisionBetween(1, 512, true, 'collision');
@@ -275,11 +288,17 @@ Play.prototype = {
               this.minions,
               'guy_walk'
             );
-            //var p = this.player = this.game.add(object.x, object.y, "guy_walk");
             p.animations.add('walk', [0,1,2,3,4,5,6]);
             this.game.add.existing(p);
             this.game.camera.follow(p);
-            this.game.physics.enable(p);
+            break;
+          case 'Warp':
+            // var warp = new Warp(
+            //   this.game,
+            //   object.x + object.width * 0.5,
+            //   object.y + object.height
+            // );
+            // this.game.add.existing(warp);
             break;
           case 'Prop':
             var properties = object.properties;
@@ -301,6 +320,17 @@ Play.prototype = {
     this.game.physics.arcade.collide(this.player, this.collisionLayer);
     this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
     // player input
+    this.updateKeyControls();
+  },
+  updateKeyControls: function () {
+    this.player.moveLeft = this.player.moveRight = false;
+    var keyboard = this.game.input.keyboard;
+    this.player.moveLeft = keyboard.isDown(Phaser.Keyboard.A);
+    this.player.moveRight = keyboard.isDown(Phaser.Keyboard.D);
+    this.player.moveJump = keyboard.isDown(Phaser.Keyboard.SPACEBAR);
+    this.player.intentGiveBirth = this.game.input.activePointer.isDown;
+  },
+  updatePointerControl: function () {
     var pointer = this.input.activePointer;
     if (pointer) {
       var epsilon = this.player.width * 0.25;
@@ -320,6 +350,9 @@ Play.prototype = {
         this.player.moveJump = false;
       }
     }
+  },
+  warpTo: function (levelName) {
+     this.game.state.start('play', true, false, [levelName]);
   }
 };
 
