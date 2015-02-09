@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="10" tilewidth="32" tileheight="32" nextobjectid="34">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="10" tilewidth="32" tileheight="32" nextobjectid="35">
  <tileset firstgid="1" name="terrain" tilewidth="32" tileheight="32">
   <image source="terrain.png" width="288" height="608"/>
  </tileset>
@@ -10,5 +10,10 @@
  </layer>
  <objectgroup name="objects">
   <object id="3" name="start" type="PlayerSpawn" x="132" y="118" width="31" height="67"/>
+  <object id="34" name="exit_0" type="Warp" x="423" y="139" width="43" height="81">
+   <properties>
+    <property name="toLevel" value="0"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

@@ -30,6 +30,21 @@
                  "width":31,
                  "x":132,
                  "y":118
+                }, 
+                {
+                 "height":81,
+                 "id":34,
+                 "name":"exit_0",
+                 "properties":
+                    {
+                     "toLevel":"0"
+                    },
+                 "rotation":0,
+                 "type":"Warp",
+                 "visible":true,
+                 "width":43,
+                 "x":423,
+                 "y":139
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -38,7 +53,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":34,
+ "nextobjectid":35,
  "orientation":"orthogonal",
  "properties":
     {

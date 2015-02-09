@@ -261,6 +261,7 @@ Play.prototype = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
     this.game.physics.arcade.gravity.y = 400;
     this.props = this.game.add.group();
+    this.warps = this.game.add.group();
     this.minions = this.game.add.group();
     this.setupMap();
     this.game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
@@ -293,12 +294,16 @@ Play.prototype = {
             this.game.camera.follow(p);
             break;
           case 'Warp':
-            // var warp = new Warp(
-            //   this.game,
-            //   object.x + object.width * 0.5,
-            //   object.y + object.height
-            // );
-            // this.game.add.existing(warp);
+            var warp = new Prop(
+              this.game,
+              object.x + object.width * 0.5,
+              object.y + object.height,
+              'door0'
+            );
+            warp.levelName = object.properties.toLevel;
+            this.game.physics.arcade.enable(warp);
+            warp.body.allowGravity = false;
+            this.warps.add(warp);
             break;
           case 'Prop':
             var properties = object.properties;
@@ -318,6 +323,11 @@ Play.prototype = {
   },
   update: function() {
     this.game.physics.arcade.collide(this.player, this.collisionLayer);
+    this.game.physics.arcade.overlap(this.player, this.warps, function (player, warp) {
+      console.log(warp);
+      this.warpTo(warp.levelName);
+    }.bind(this));
+    
     this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
     // player input
     this.updateKeyControls();
@@ -375,8 +385,8 @@ Preload.prototype = {
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
     this.load.setPreloadSprite(this.asset);
     this.load.image('barrel0', 'assets/barrel0.png');
+    this.load.image('door0', 'assets/door0.png');
     this.load.image('terrainTiles', 'assets/tiled/terrain.png');
-    this.load.tilemap('level0', 'assets/tiled/level0.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.spritesheet('guy_walk', 'assets/guy_walk.png', 79, 150, 7);
     this.load.spritesheet('baby_run', 'assets/baby_run.png', 58, 96, 6);
   },
