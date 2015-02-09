@@ -21,6 +21,7 @@ Play.prototype = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
     this.game.physics.arcade.gravity.y = 400;
     this.props = this.game.add.group();
+    this.warps = this.game.add.group();
     this.minions = this.game.add.group();
     this.setupMap();
     this.game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
@@ -53,12 +54,16 @@ Play.prototype = {
             this.game.camera.follow(p);
             break;
           case 'Warp':
-            // var warp = new Warp(
-            //   this.game,
-            //   object.x + object.width * 0.5,
-            //   object.y + object.height
-            // );
-            // this.game.add.existing(warp);
+            var warp = new Prop(
+              this.game,
+              object.x + object.width * 0.5,
+              object.y + object.height,
+              'door0'
+            );
+            warp.levelName = object.properties.toLevel;
+            this.game.physics.arcade.enable(warp);
+            warp.body.allowGravity = false;
+            this.warps.add(warp);
             break;
           case 'Prop':
             var properties = object.properties;
@@ -78,6 +83,11 @@ Play.prototype = {
   },
   update: function() {
     this.game.physics.arcade.collide(this.player, this.collisionLayer);
+    this.game.physics.arcade.overlap(this.player, this.warps, function (player, warp) {
+      console.log(warp);
+      this.warpTo(warp.levelName);
+    }.bind(this));
+    
     this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
     // player input
     this.updateKeyControls();

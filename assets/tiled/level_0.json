@@ -167,18 +167,18 @@
                  "y":185
                 }, 
                 {
-                 "height":49,
+                 "height":54,
                  "id":36,
                  "name":"warp_x",
                  "properties":
                     {
-                     "toLevel":"_x"
+                     "toLevel":"x"
                     },
                  "rotation":0,
                  "type":"Warp",
                  "visible":true,
-                 "width":48,
-                 "x":1345,
+                 "width":41,
+                 "x":200,
                  "y":141
                 }],
          "opacity":1,
@@ -188,7 +188,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":37,
+ "nextobjectid":42,
  "orientation":"orthogonal",
  "properties":
     {
