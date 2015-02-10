@@ -16,7 +16,8 @@ Preload.prototype = {
     this.load.image('door0', 'assets/door0.png');
     this.load.image('terrainTiles', 'assets/tiled/terrain.png');
     this.load.spritesheet('guy_walk', 'assets/guy_walk.png', 79, 150, 7);
-    this.load.spritesheet('baby_run', 'assets/baby_run.png', 58, 96, 6);
+    //this.load.spritesheet('baby_run', 'assets/baby_run.png', 58, 96, 6);
+    this.load.spritesheet('baby_run', 'assets/small_baby_run.png', 24, 40, 6);
   },
   create: function() {
     this.asset.cropEnabled = false;

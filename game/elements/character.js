@@ -31,9 +31,9 @@ Character.prototype.update = function () {
   Phaser.Sprite.prototype.update.call(this);
   
   // animation and direction
-  if (this.body.velocity.x > 0) {
+  if (this.body.velocity.x > 0 && !this.moveLeft || this.moveRight) {
     this.scale.x = 1;
-  } else if (this.body.velocity.x < 0) {
+  } else if (this.body.velocity.x < 0 && !this.moveRight || this.moveLeft) {
     this.scale.x = -1;
   }
   if (Math.abs(this.body.velocity.x) > 0) {

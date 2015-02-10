@@ -9,7 +9,6 @@ function Play() {}
 Play.prototype = {
   init: function (levelName) {
     this.levelName = 'level_' + (levelName || '0');
-    console.log('level named ' + this.levelName);
   },
   preload: function ()  {
     this.load.tilemap(
@@ -83,12 +82,11 @@ Play.prototype = {
   update: function() {
     this.game.physics.arcade.collide(this.player, this.collisionLayer);
     if (this.player.intentUse) {
-      console.log('checking')
       this.game.physics.arcade.overlap(this.player, this.warps, function (player, warp) {
-        console.log('overlapping');
         warp.doWarp();
       }.bind(this));
     }
+    this.game.physics.arcade.collide(this.player.minionGroup);
     this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
     // player input
     this.updateKeyControls();

@@ -5,7 +5,8 @@ var Character = require('./character');
 function Minion(game, x, y, key, frame) {
   Character.call(this, game, x, y, key, frame);
   game.physics.arcade.enable(this);
-  this.moveVelocity = 300;
+  this.moveVelocity = 300 + Math.random() * 100;
+  this.jumpVelocity = -(250 + Math.random() * 100);
   // trim down the hitbox
   this.body.setSize(
     this.width * 0.5, this.height * 0.9,
@@ -29,7 +30,7 @@ Minion.prototype.update = function () {
 
 Minion.prototype.think = function () {
   if (this.targetObject) {
-    var epsilon = this.width * 0.25;
+    var epsilon = this.width * 0.75;
     var targetPos = this.targetObject.position;
     this.moveLeft = false;
     this.moveRight = false;

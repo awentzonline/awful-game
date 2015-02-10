@@ -14,7 +14,6 @@ Warp.prototype.constructor = Warp;
 
 Warp.prototype.doWarp = function () {
   this.game.state.start('play', true, false, [this.levelName]);
-  console.log('warped');
 };
 
 module.exports = Warp;

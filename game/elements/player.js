@@ -14,7 +14,7 @@ function Player(game, x, y, minionGroup, key, frame) {
     this.width * 0.5 * 0.5, -this.height * 0.1 * 0.5);
   this.intentGiveBirth = false;
   this.nextBirthTime = 0;
-  this.birthDelay = 1000; // ms
+  this.birthDelay = 100; // ms
   this.minionGroup = game.add.group();
 }
 
