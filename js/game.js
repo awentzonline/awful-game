@@ -8,6 +8,7 @@ function Character(game, x, y, key, frame) {
   this.moveLeft = this.moveRight = false;
   this.jumpVelocity = -200;
   this.moveJump = false;
+  this.intentUse = false;
 }
 
 Character.prototype = Object.create(Phaser.Sprite.prototype);
@@ -31,9 +32,9 @@ Character.prototype.update = function () {
   Phaser.Sprite.prototype.update.call(this);
   
   // animation and direction
-  if (this.body.velocity.x > 0) {
+  if (this.body.velocity.x > 0 && !this.moveLeft || this.moveRight) {
     this.scale.x = 1;
-  } else if (this.body.velocity.x < 0) {
+  } else if (this.body.velocity.x < 0 && !this.moveRight || this.moveLeft) {
     this.scale.x = -1;
   }
   if (Math.abs(this.body.velocity.x) > 0) {
@@ -53,7 +54,8 @@ var Character = require('./character');
 function Minion(game, x, y, key, frame) {
   Character.call(this, game, x, y, key, frame);
   game.physics.arcade.enable(this);
-  this.moveVelocity = 300;
+  this.moveVelocity = 300 + Math.random() * 100;
+  this.jumpVelocity = -(250 + Math.random() * 100);
   // trim down the hitbox
   this.body.setSize(
     this.width * 0.5, this.height * 0.9,
@@ -77,7 +79,7 @@ Minion.prototype.update = function () {
 
 Minion.prototype.think = function () {
   if (this.targetObject) {
-    var epsilon = this.width * 0.25;
+    var epsilon = this.width * 0.75;
     var targetPos = this.targetObject.position;
     this.moveLeft = false;
     this.moveRight = false;
@@ -108,7 +110,7 @@ function Player(game, x, y, minionGroup, key, frame) {
     this.width * 0.5 * 0.5, -this.height * 0.1 * 0.5);
   this.intentGiveBirth = false;
   this.nextBirthTime = 0;
-  this.birthDelay = 1000; // ms
+  this.birthDelay = 100; // ms
   this.minionGroup = game.add.group();
 }
 
@@ -149,6 +151,27 @@ module.exports = Prop;
 },{}],5:[function(require,module,exports){
 'use strict';
 
+var Prop = require('./prop');
+
+function Warp(toLevelName, game, x, y, key, frame) {
+  Prop.call(this, game, x, y, key, frame);
+  game.physics.arcade.enable(this);
+  this.body.allowGravity = false;
+  this.levelName = toLevelName;      
+}
+
+Warp.prototype = Object.create(Prop.prototype);
+Warp.prototype.constructor = Warp;
+
+Warp.prototype.doWarp = function () {
+  this.game.state.start('play', true, false, [this.levelName]);
+};
+
+module.exports = Warp;
+
+},{"./prop":4}],6:[function(require,module,exports){
+'use strict';
+
 //global variables
 window.onload = function () {
   var game = new Phaser.Game(800, 600, Phaser.AUTO, 'base-game');
@@ -163,7 +186,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":6,"./states/gameover":7,"./states/menu":8,"./states/play":9,"./states/preload":10}],6:[function(require,module,exports){
+},{"./states/boot":7,"./states/gameover":8,"./states/menu":9,"./states/play":10,"./states/preload":11}],7:[function(require,module,exports){
 
 'use strict';
 
@@ -182,7 +205,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -210,7 +233,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -237,18 +260,18 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 var Player = require('../elements/player');
 var Prop = require('../elements/prop');
+var Warp = require('../elements/warp');
 
 function Play() {}
 
 Play.prototype = {
   init: function (levelName) {
     this.levelName = 'level_' + (levelName || '0');
-    console.log('level named ' + this.levelName);
   },
   preload: function ()  {
     this.load.tilemap(
@@ -294,15 +317,13 @@ Play.prototype = {
             this.game.camera.follow(p);
             break;
           case 'Warp':
-            var warp = new Prop(
+            var warp = new Warp(
+              object.properties.toLevel,
               this.game,
               object.x + object.width * 0.5,
               object.y + object.height,
               'door0'
             );
-            warp.levelName = object.properties.toLevel;
-            this.game.physics.arcade.enable(warp);
-            warp.body.allowGravity = false;
             this.warps.add(warp);
             break;
           case 'Prop':
@@ -323,11 +344,12 @@ Play.prototype = {
   },
   update: function() {
     this.game.physics.arcade.collide(this.player, this.collisionLayer);
-    this.game.physics.arcade.overlap(this.player, this.warps, function (player, warp) {
-      console.log(warp);
-      this.warpTo(warp.levelName);
-    }.bind(this));
-    
+    if (this.player.intentUse) {
+      this.game.physics.arcade.overlap(this.player, this.warps, function (player, warp) {
+        warp.doWarp();
+      }.bind(this));
+    }
+    this.game.physics.arcade.collide(this.player.minionGroup);
     this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
     // player input
     this.updateKeyControls();
@@ -338,7 +360,11 @@ Play.prototype = {
     this.player.moveLeft = keyboard.isDown(Phaser.Keyboard.A);
     this.player.moveRight = keyboard.isDown(Phaser.Keyboard.D);
     this.player.moveJump = keyboard.isDown(Phaser.Keyboard.SPACEBAR);
-    this.player.intentGiveBirth = this.game.input.activePointer.isDown;
+    this.player.intentUse = keyboard.isDown(Phaser.Keyboard.W);
+    var pointer = this.game.input.activePointer;
+    if (pointer) {
+      this.player.intentGiveBirth = pointer.isDown;
+    }
   },
   updatePointerControl: function () {
     var pointer = this.input.activePointer;
@@ -354,22 +380,16 @@ Play.prototype = {
         this.player.moveLeft = false;
         this.player.moveRight = false;  
       }
-      if (pointer.isDown) {
-        this.player.moveJump = true;
-      } else {
-        this.player.moveJump = false;
-      }
+      this.player.intentUse = pointer.isDown;
+      this.player.moveJump = pointer.isDown;
     }
-  },
-  warpTo: function (levelName) {
-     this.game.state.start('play', true, false, [levelName]);
   }
 };
 
 
 module.exports = Play;
 
-},{"../elements/player":3,"../elements/prop":4}],10:[function(require,module,exports){
+},{"../elements/player":3,"../elements/prop":4,"../elements/warp":5}],11:[function(require,module,exports){
 
 'use strict';
 function Preload() {
@@ -388,7 +408,8 @@ Preload.prototype = {
     this.load.image('door0', 'assets/door0.png');
     this.load.image('terrainTiles', 'assets/tiled/terrain.png');
     this.load.spritesheet('guy_walk', 'assets/guy_walk.png', 79, 150, 7);
-    this.load.spritesheet('baby_run', 'assets/baby_run.png', 58, 96, 6);
+    //this.load.spritesheet('baby_run', 'assets/baby_run.png', 58, 96, 6);
+    this.load.spritesheet('baby_run', 'assets/small_baby_run.png', 24, 40, 6);
   },
   create: function() {
     this.asset.cropEnabled = false;
@@ -405,4 +426,4 @@ Preload.prototype = {
 
 module.exports = Preload;
 
-},{}]},{},[5])
+},{}]},{},[6])
