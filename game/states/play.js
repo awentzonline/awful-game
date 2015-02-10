@@ -2,6 +2,7 @@
 
 var Player = require('../elements/player');
 var Prop = require('../elements/prop');
+var Warp = require('../elements/warp');
 
 function Play() {}
 
@@ -54,15 +55,13 @@ Play.prototype = {
             this.game.camera.follow(p);
             break;
           case 'Warp':
-            var warp = new Prop(
+            var warp = new Warp(
+              object.properties.toLevel,
               this.game,
               object.x + object.width * 0.5,
               object.y + object.height,
               'door0'
             );
-            warp.levelName = object.properties.toLevel;
-            this.game.physics.arcade.enable(warp);
-            warp.body.allowGravity = false;
             this.warps.add(warp);
             break;
           case 'Prop':
@@ -83,11 +82,13 @@ Play.prototype = {
   },
   update: function() {
     this.game.physics.arcade.collide(this.player, this.collisionLayer);
-    this.game.physics.arcade.overlap(this.player, this.warps, function (player, warp) {
-      console.log(warp);
-      this.warpTo(warp.levelName);
-    }.bind(this));
-    
+    if (this.player.intentUse) {
+      console.log('checking')
+      this.game.physics.arcade.overlap(this.player, this.warps, function (player, warp) {
+        console.log('overlapping');
+        warp.doWarp();
+      }.bind(this));
+    }
     this.game.physics.arcade.collide(this.player.minionGroup, this.collisionLayer);
     // player input
     this.updateKeyControls();
@@ -98,7 +99,11 @@ Play.prototype = {
     this.player.moveLeft = keyboard.isDown(Phaser.Keyboard.A);
     this.player.moveRight = keyboard.isDown(Phaser.Keyboard.D);
     this.player.moveJump = keyboard.isDown(Phaser.Keyboard.SPACEBAR);
-    this.player.intentGiveBirth = this.game.input.activePointer.isDown;
+    this.player.intentUse = keyboard.isDown(Phaser.Keyboard.W);
+    var pointer = this.game.input.activePointer;
+    if (pointer) {
+      this.player.intentGiveBirth = pointer.isDown;
+    }
   },
   updatePointerControl: function () {
     var pointer = this.input.activePointer;
@@ -114,15 +119,9 @@ Play.prototype = {
         this.player.moveLeft = false;
         this.player.moveRight = false;  
       }
-      if (pointer.isDown) {
-        this.player.moveJump = true;
-      } else {
-        this.player.moveJump = false;
-      }
+      this.player.intentUse = pointer.isDown;
+      this.player.moveJump = pointer.isDown;
     }
-  },
-  warpTo: function (levelName) {
-     this.game.state.start('play', true, false, [levelName]);
   }
 };
 

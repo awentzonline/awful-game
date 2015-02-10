@@ -7,6 +7,7 @@ function Character(game, x, y, key, frame) {
   this.moveLeft = this.moveRight = false;
   this.jumpVelocity = -200;
   this.moveJump = false;
+  this.intentUse = false;
 }
 
 Character.prototype = Object.create(Phaser.Sprite.prototype);
